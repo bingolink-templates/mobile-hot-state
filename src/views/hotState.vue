@@ -1,91 +1,250 @@
 <template>
-  <div class="main">
+  <div ref="wrap">
     <!-- 热门动态 -->
-    <div class="hot-state bra">
+    <div class="hot-state">
       <div class="hot-state-title flex">
         <text class="f28 fw5 c0">热门动态</text>
         <text class="f24 c153 fw4 pl20 pt10 pb10" @click="hotAllEvent">全部</text>
       </div>
-      <scroller class="state-scroller-item flex-dr hot-state-content" scroll-direction="horizontal"
-        show-scrollbar="false">
-        <div class="hot-state-item bra mr20" v-for="(item,index) in imageArr" :key='index'>
-          <div class="item-title flex">
-            <div class="flex-dr flex-ac">
-              <bui-image src="/image/test.jpg" radius='20px' width="40px" height="40px"></bui-image>
-              <text class="f24 pl20 fw4 c51">Amy3053</text>
+      <div v-if="isShow">
+        <scroller v-if='hotStateArr.length!=0' class="state-scroller-item flex-dr hot-state-content"
+          scroll-direction="horizontal" show-scrollbar="false">
+          <div class="hot-state-item bra mr20" v-for="(item,index) in hotStateArr" :key='index'
+            @click="hotEvent(item.id)">
+            <div class="item-title flex">
+              <div class="flex-dr flex-ac">
+                <bui-image :src="item.headImage" radius='20px' width="40px" height="40px" v-if="item.headImage"
+                  @click="hotEvent(item.id)">
+                </bui-image>
+                <div class="avatar-image flex-ac" v-if="!item.headImage">
+                  <text class="cf f28">{{item.accountNameLastWord}}</text>
+                </div>
+                <text class="f24 pl20 fw4 c51">{{item.accountName}}</text>
+              </div>
+              <text class="f20 fw4 c153">{{item.time}}</text>
             </div>
-            <text class="f20 fw4 c153">2小时前</text>
-          </div>
-          <div class="item-content">
-            <text class="f20 c102 lines2 fw4">个性需求接受or拒绝，揭秘产品组和项目组不为人知的秘密！</text>
-            <scroller class="state-scroller-image mt20 mb20" scroll-direction="horizontal" show-scrollbar="false">
-              <div class="flex-dr">
-                <div class="item-image pr10" v-for="(item ,index) in imageArr" :key='index'>
-                  <bui-image src="/image/test.jpg" width="72px" height="72px"></bui-image>
+            <div class="item-content">
+              <text class="f20 c102 lines2 fw4">{{item.content}}</text>
+              <scroller class="state-scroller-image mt20 mb20" scroll-direction="horizontal" show-scrollbar="false">
+                <div class="flex-dr">
+                  <div class="item-image pr10" v-for="(image ,index) in item.imageArr" :key='index'>
+                    <bui-image :src='image' width="72px" height="72px" @click="hotEvent(item.id)"></bui-image>
+                  </div>
+                </div>
+              </scroller>
+            </div>
+            <div class="item-comment">
+              <div class="flex-dr flex-je">
+                <div class="flex-dr flex-ac mr30">
+                  <bui-image src="/image/comment.png" width="22px" height="22px"></bui-image>
+                  <text class="f22 fw4 pl10 c85">{{item.commentCount}}</text>
+                </div>
+                <div class="flex-dr flex-ac">
+                  <bui-image src="/image/yes.png" width="22px" height="22px"></bui-image>
+                  <text class="f22 fw4 pl10 c85">{{item.praiseCount}}</text>
                 </div>
               </div>
-            </scroller>
-          </div>
-          <div class="item-comment">
-            <div class="flex-dr flex-je">
-              <div class="flex-dr flex-ac mr30">
-                <bui-image src="/image/test.jpg" width="20px" height="20px"></bui-image>
-                <text class="f22 fw4 pl10 c85">230</text>
-              </div>
-              <div class="flex-dr flex-ac">
-                <bui-image src="/image/test.jpg" width="20px" height="20px"></bui-image>
-                <text class="f22 fw4 pl10 c85">230</text>
-              </div>
             </div>
           </div>
+        </scroller>
+        <div class="no-content flex-ac flex-jc" v-if='hotStateArr.length==0'>
+          <div class="flex-dr">
+            <bui-image src="/image/sleep.png" width="42px" height="39px"></bui-image>
+            <text class="f26 c51 fw4 pl15 center-height">{{isError?'暂无动态':'加载失败'}}</text>
+          </div>
         </div>
-      </scroller>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+  const link = weex.requireModule("LinkModule");
+  const dom = weex.requireModule('dom');
   export default {
     data() {
       return {
-        imageArr: ['','','','','','','']
+        hotStateArr: [],
+        isShow: false,
+        isError: true
       }
     },
     methods: {
-      // 更多
-      hotAllEvent() {
-        this.$alert()
+      hotAllEvent(id) {
+        link.launchLinkService(['[OpenBuiltIn] \n key=BlogMain'], (res) => {}, (err) => {});
+      },
+      hotEvent(id) {
+        link.launchLinkService(['[OpenBuiltIn] \n key=BlogDetail \n blogId=' + id], (res) => {}, (err) => {});
+      },
+      timeFormat(m) {
+        return m < 10 ? '0' + m : m
+      },
+      getNowFormatDate(type, dat) {
+        let date = new Date()
+        if (dat) {
+          date = new Date(dat)
+        }
+        let year = date.getFullYear(),
+          month = date.getMonth() + 1,
+          strDate = date.getDate(),
+          currentdate = ''
+        if (month >= 1 && month <= 9) {
+          month = "0" + month;
+        }
+        if (strDate >= 0 && strDate <= 9) {
+          strDate = "0" + strDate;
+        }
+        if (type == 1) {
+          currentdate = year + month + strDate;
+        } else {
+          currentdate = year + '/' + month + '/' + strDate;
+        }
+        let hour = date.getHours(),
+          min = date.getMinutes();
+        if (dat) {
+
+          if (new Date(dat).toDateString() === new Date().toDateString()) {
+            currentdate = '今天 ' + this.timeFormat(hour) + ':' + this.timeFormat(min)
+          } else {
+            currentdate = month + '-' + strDate + ' ' + this.timeFormat(hour) + ':' + this.timeFormat(min)
+          }
+        }
+        return currentdate;
+      },
+      getToken(success, error) {
+        return new Promise((resolve, reject) => {
+          link.getToken([], res => {
+            resolve(res);
+            success && success(res);
+          }, err => {
+            reject(err);
+            error && error(err);
+          });
+        });
+      },
+      getHotStateData(url, data, token, success, error) {
+        return new Promise((resolve, reject) => {
+          this.$get({
+            url: url,
+            headers: {
+              'Authorization': 'Bearer ' + token
+            },
+            data: data
+          }).then((res) => {
+            resolve(res);
+            success && success(res);
+          }).catch((reason) => {
+            reject(reason);
+            error && error(reason);
+          })
+        });
+      },
+      getHotState(start, end) {
+        this.getToken((token) => {
+          link.getServerConfigs([], (params) => {
+            let objData = {
+              labelId: 'BrowsingBlogs',
+              cursor: '',
+              limit: 5,
+              commentNum: 5,
+              forwardNum: 5,
+              praiseNum: 10
+            }
+            this.getHotStateData(params.blogUri + '/v1/blog/list/label', objData, token.accessToken, (res) => {
+              this.isError = true
+              this.isShow = true
+              this.broadcastWidgetHeight()
+              if (res.code == 200) {
+                let hotArr = []
+                for (let index = 0; index < res.data.length; index++) {
+                  let element = res.data[index];
+                  let hotObj = {}
+                  hotObj['commentCount'] = element.commentCount
+                  hotObj['praiseCount'] = element.praiseCount
+                  let newDate = element.blogInfo.publishTime
+                  let getMonthWeek = this.getNowFormatDate(1, newDate)
+                  hotObj['time'] = getMonthWeek
+                  hotObj['accountName'] = element.blogInfo.accountName
+                  hotObj['content'] = element.blogInfo.content
+                  hotObj['id'] = element.blogInfo.blogId
+                  hotObj['accountNameLastWord'] =
+                    element.blogInfo.accountName.charAt(element.blogInfo.accountName.length - 1)
+                  hotObj['headImage'] = ''
+                  if (element.blogInfo.accountImage) {
+                    hotObj['headImage'] = params.uamUri + "/api/uam/getAvatarById?id=" + element.blogInfo
+                      .accountId +
+                      '&type=1&width=40&height=40&&access_token=' + token.accessToken
+                  }
+                  hotObj['imageArr'] = []
+                  for (let jindex = 0; jindex < element.resourceList.length; jindex++) {
+                    let resourceItem = element.resourceList[jindex];
+                    let imageId = resourceItem.resourceUrl.split('//')[1]
+                    let imageItem =
+                      params.storeUri + "/store/getFile?fileId=" + imageId + '&size=0x71&access_token=' +
+                      token.accessToken
+                    hotObj['imageArr'].push(imageItem)
+                  }
+                  hotArr.push(hotObj)
+                }
+                this.hotStateArr = hotArr
+              } else {
+                this.broadcastWidgetHeight()
+              }
+            }, (err) => {
+              this.error()
+            })
+          }, (err) => {
+            this.error()
+          });
+        }, (err) => {
+          this.error()
+        })
+      },
+      error() {
+        this.isError = false
+        this.isShow = true
+        this.broadcastWidgetHeight()
+      },
+      broadcastWidgetHeight() {
+        let _params = this.$getPageParams();
+        setTimeout(() => {
+          dom.getComponentRect(this.$refs.wrap, (ret) => {
+            var channel = new BroadcastChannel('WidgetsMessage')
+            channel.postMessage({
+              widgetHeight: ret.size.height,
+              id: _params.id
+            });
+            channel.close();
+          });
+        }, 100)
       }
+    },
+    mounted() {
+      this.getHotState()
     }
   }
 </script>
 
 <style lang="css" src="../css/common.css"></style>
 <style>
-  .main {
-    flex: 1;
-    padding-top: 100px;
-    background-color: #666;
-  }
-
   .hot-state {
-    height: 397px;
     background-color: #fff;
   }
 
   .hot-state-title {
     height: 40px;
-    margin: 18px 23px 0 25px;
+    margin: 18px 23px 10px 25px;
   }
 
   .hot-state-content {
     padding-left: 24px;
+    background-color: #f8f9fa;
   }
 
   .hot-state-item {
     width: 553px;
     height: 294px;
-    box-shadow: 0px 0px 23px 3px rgba(229, 232, 237, 0.53);
+    border: 1px solid #f8f9fa;
     background-color: #fff;
   }
 
@@ -104,11 +263,27 @@
   }
 
   .state-scroller-item {
-    height: 294px;
-    padding-top: 20px;
+    height: 330px;
+    padding-top: 15px;
   }
 
   .item-comment {
     padding-right: 24px;
+  }
+
+  .avatar-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background: #4ca4fe;
+  }
+
+  .no-content {
+    height: 166px;
+    width: 750px
+  }
+
+  .center-height {
+    line-height: 40px;
   }
 </style>
