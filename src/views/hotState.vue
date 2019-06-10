@@ -60,6 +60,7 @@
 
 <script>
   const link = weex.requireModule("LinkModule");
+  const linkapi = require('linkapi');
   const dom = weex.requireModule('dom');
   export default {
     data() {
@@ -122,23 +123,6 @@
           });
         });
       },
-      getHotStateData(url, data, token, success, error) {
-        return new Promise((resolve, reject) => {
-          this.$get({
-            url: url,
-            headers: {
-              'Authorization': 'Bearer ' + token
-            },
-            data: data
-          }).then((res) => {
-            resolve(res);
-            success && success(res);
-          }).catch((reason) => {
-            reject(reason);
-            error && error(reason);
-          })
-        });
-      },
       getHotState(start, end) {
         this.getToken((token) => {
           link.getServerConfigs([], (params) => {
@@ -150,7 +134,10 @@
               forwardNum: 5,
               praiseNum: 10
             }
-            this.getHotStateData(params.blogUri + '/v1/blog/list/label', objData, token.accessToken, (res) => {
+            linkapi.fetch('GET', {
+              url: params.blogUri + '/v1/blog/list/label',
+              data: objData,
+            }).then((res) => {
               this.isError = true
               this.isShow = true
               this.broadcastWidgetHeight()
@@ -167,13 +154,12 @@
                   hotObj['accountName'] = element.blogInfo.accountName
                   hotObj['content'] = element.blogInfo.content
                   hotObj['id'] = element.blogInfo.blogId
-                  hotObj['accountNameLastWord'] =
-                    element.blogInfo.accountName.charAt(element.blogInfo.accountName.length - 1)
+                  hotObj['accountNameLastWord'] = element.blogInfo.accountName.charAt(element.blogInfo
+                    .accountName.length - 1)
                   hotObj['headImage'] = ''
                   if (element.blogInfo.accountImage) {
                     hotObj['headImage'] = params.uamUri + "/api/uam/getAvatarById?id=" + element.blogInfo
-                      .accountId +
-                      '&type=1&width=40&height=40&&access_token=' + token.accessToken
+                      .accountId + '&type=1&width=40&height=40&&access_token=' + token.accessToken
                   }
                   hotObj['imageArr'] = []
                   for (let jindex = 0; jindex < element.resourceList.length; jindex++) {
