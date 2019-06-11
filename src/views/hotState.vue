@@ -136,7 +136,7 @@
               forwardNum: 5,
               praiseNum: 10
             }
-            linkapi.fetch('GET', {
+            linkapi.get({
               url: params.blogUri + '/v1/blog/list/label',
               data: objData,
             }).then((res) => {
@@ -201,7 +201,6 @@
               widgetHeight: ret.size.height,
               id: _params.id
             });
-            channel.close();
           });
         }, 100)
       }
