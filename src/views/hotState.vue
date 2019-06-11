@@ -68,6 +68,7 @@
         hotStateArr: [],
         isShow: false,
         isError: true,
+        channel: new BroadcastChannel('WidgetsMessage'),
         i18n: ''
       }
     },
@@ -196,8 +197,7 @@
         let _params = this.$getPageParams();
         setTimeout(() => {
           dom.getComponentRect(this.$refs.wrap, (ret) => {
-            var channel = new BroadcastChannel('WidgetsMessage')
-            channel.postMessage({
+            this.channel.postMessage({
               widgetHeight: ret.size.height,
               id: _params.id
             });
@@ -212,6 +212,11 @@
       })
     },
     mounted() {
+      this.channel.onmessage = (event) => {
+        if (event.data.action === 'RefreshData') {
+          this.getHotState()
+        }
+      }
       this.getHotState()
     }
   }
