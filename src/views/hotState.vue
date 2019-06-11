@@ -3,8 +3,8 @@
     <!-- 热门动态 -->
     <div class="hot-state">
       <div class="hot-state-title flex">
-        <text class="f28 fw5 c0">热门动态</text>
-        <text class="f24 c153 fw4 pl20 pt10 pb10" @click="hotAllEvent">全部</text>
+        <text class="f28 fw5 c0">{{i18n.HotBlog}}</text>
+        <text class="f24 c153 fw4 pl20 pt10 pb10" @click="hotAllEvent">{{i18n.All}}</text>
       </div>
       <div v-if="isShow">
         <scroller v-if='hotStateArr.length!=0' class="state-scroller-item flex-dr hot-state-content"
@@ -50,7 +50,7 @@
         <div class="no-content flex-ac flex-jc" v-if='hotStateArr.length==0'>
           <div class="flex-dr">
             <bui-image src="/image/sleep.png" width="42px" height="39px"></bui-image>
-            <text class="f26 c51 fw4 pl15 center-height">{{isError?'暂无动态':'加载失败'}}</text>
+            <text class="f26 c51 fw4 pl15 center-height">{{isError?i18n.NoneData:i18n.ErrorLoadData}}</text>
           </div>
         </div>
       </div>
@@ -67,7 +67,8 @@
       return {
         hotStateArr: [],
         isShow: false,
-        isError: true
+        isError: true,
+        i18n: ''
       }
     },
     methods: {
@@ -204,6 +205,11 @@
           });
         }, 100)
       }
+    },
+    created() {
+      linkapi.getLanguage((res) => {
+        this.i18n = this.$window[res]
+      })
     },
     mounted() {
       this.getHotState()
