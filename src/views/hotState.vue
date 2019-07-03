@@ -9,11 +9,12 @@
             <div v-if="isShow">
                 <scroller v-if='hotStateArr.length!=0' class="state-scroller-item flex-dr hot-state-content"
                     scroll-direction="horizontal" show-scrollbar="false">
-                    <div class="hot-state-item bra mr20" v-for="(item,index) in hotStateArr" :key='index' @click="hotEvent(item.id)">
+                    <div class="hot-state-item bra mr20" v-for="(item,index) in hotStateArr" :key='index'
+                        @click="hotEvent(item.id)">
                         <div class="item-title flex">
                             <div class="flex-dr flex-ac">
-                                <bui-image :src="item.headImage" radius='20px' width="40px" height="40px" v-if="item.headImage"
-                                    @click="hotEvent(item.id)">
+                                <bui-image :src="item.headImage" radius='20px' width="40px" height="40px"
+                                    v-if="item.headImage" @click="hotEvent(item.id)">
                                 </bui-image>
                                 <div class="avatar-image flex-ac" v-if="!item.headImage">
                                     <text class="cf f28">{{item.accountNameLastWord}}</text>
@@ -24,14 +25,25 @@
                         </div>
                         <div class="item-content">
                             <text class="f20 c102 lines2 fw4">{{item.content}}</text>
-                            <scroller class="state-scroller-image mt20 mb20" scroll-direction="horizontal"
-                                show-scrollbar="false">
-                                <div class="flex-dr">
-                                    <div class="item-image pr10" v-for="(image ,index) in item.imageArr" :key='index'>
-                                        <bui-image :src='image' width="72px" height="72px" @click="hotEvent(item.id)"></bui-image>
+                            <div v-if='item.isExisDoc' class="flex-dr doc-list mt20 mb20 flex-ac">
+                                <bui-image :src='item.docImage' width="78px" height="76px" @click="hotEvent(item.id)">
+                                </bui-image>
+                                <text class="doc-name f24 c128 lines1">{{item.docName}}</text>
+                            </div>
+                            <div v-else>
+                                <scroller class="state-scroller-image mt20 mb20" scroll-direction="horizontal"
+                                    show-scrollbar="false">
+                                    <div class="flex-dr">
+                                        <div class="item-image pr10" v-for="(image ,index) in item.imageArr"
+                                            :key='index'>
+                                            <div v-if="index<=4">
+                                                <bui-image :src='image' width="72px" height="72px"
+                                                    @click="hotEvent(item.id)"></bui-image>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </scroller>
+                                </scroller>
+                            </div>
                         </div>
                         <div class="item-comment">
                             <div class="flex-dr flex-je">
@@ -81,6 +93,38 @@
             },
             timeFormat(m) {
                 return m < 10 ? '0' + m : m
+            },
+            getFileImages(ext) {
+                let fileImageTypes = {
+                    'excel': ['xls', 'xlsx'],
+                    'music': ['mp3', 'wma', 'wav', 'mod', 'ogg', 'm4a'],
+                    'pdf': ['pdf'],
+                    'photo': ['bmp', 'gif', 'jpeg', 'jpg', 'svg', 'png', 'psd'],
+                    'ppt': ['ppt', 'pptx'],
+                    'txt': ['txt', 'key'],
+                    'video': ['rm', 'rmvb', 'wmv', 'avi', 'mp4', '3gp', 'mkv', 'flv', 'mov', 'mpg'],
+                    'word': ['doc', 'docx', 'wps'],
+                    'zip': ['zip', 'rar', '7z'],
+                    'unknow': ['file'],
+                    'folder2': ['folder']
+                }
+                let fileImages = {};
+                let fileTypeImages = {};
+                for (let fext in fileImageTypes) {
+                    fileImages[fext] = '/image/' + fext + '.png';
+                    let arr = fileImageTypes[fext];
+                    if (arr.length > 0) {
+                        for (let i = 0; i < arr.length; i++) {
+                            fileTypeImages[arr[i]] = fext;
+                        }
+                    }
+                }
+                let type = fileTypeImages[ext];
+                if (type) {
+                    return fileImages[type];
+                } else {
+                    return fileImages['unknow'];
+                }
             },
             getNowFormatDate(type, dat) {
                 let date = new Date()
@@ -155,21 +199,34 @@
                                     hotObj['accountName'] = element.blogInfo.accountName
                                     hotObj['content'] = element.blogInfo.content
                                     hotObj['id'] = element.blogInfo.blogId
-                                    hotObj['accountNameLastWord'] = element.blogInfo.accountName.charAt(element.blogInfo
-                                        .accountName.length - 1)
+                                    hotObj['accountNameLastWord'] = element.blogInfo.accountName.charAt(element.blogInfo.accountName.length - 1)
                                     hotObj['headImage'] = ''
                                     if (element.blogInfo.accountImage) {
-                                        hotObj['headImage'] = params.uamUri + "/api/uam/getAvatarById?id=" + element.blogInfo
-                                            .accountId + '&type=1&width=40&height=40&&access_token=' + token.accessToken
+                                        hotObj['headImage'] = params.uamUri + "/api/uam/getAvatarById?id=" + element.blogInfo.accountId + '&type=1&width=40&height=40&&access_token=' + token.accessToken
                                     }
                                     hotObj['imageArr'] = []
+                                    hotObj['isExisDoc'] = false
                                     for (let jindex = 0; jindex < element.resourceList.length; jindex++) {
                                         let resourceItem = element.resourceList[jindex];
-                                        let imageId = resourceItem.resourceUrl.split('//')[1]
-                                        let imageItem =
-                                            params.storeUri + "/store/getFile?fileId=" + imageId + '&size=0x71&access_token=' +
-                                            token.accessToken
-                                        hotObj['imageArr'].push(imageItem)
+                                        // 文件
+                                        if (resourceItem.resourceType == 3) {
+                                            // 默认展示一个文档
+                                            hotObj['isExisDoc'] = true
+                                            let docImage = resourceItem.resourceDescription.split('.')[resourceItem.resourceDescription.split('.').length - 1]
+                                            hotObj['docImage'] = this.getFileImages(docImage)
+                                            hotObj['docName'] = resourceItem.resourceDescription
+                                            break
+                                        // 图片
+                                        } else if (resourceItem.resourceType == 0) {
+                                            let imageId = resourceItem.resourceUrl.split('//')[1]
+                                            let imageItem = params.storeUri + "/store/getFile?fileId=" + imageId + '&size=0x71&access_token=' + token.accessToken
+                                            hotObj['imageArr'].push(imageItem)
+                                        // 链接
+                                        }else if(resourceItem.resourceType == 4){
+                                            hotObj['isExisDoc'] = true
+                                            hotObj['docImage'] = '/image/url.png'
+                                            hotObj['docName'] = resourceItem.resourceDescription
+                                        }
                                     }
                                     hotArr.push(hotObj)
                                 }
@@ -193,6 +250,7 @@
                 this.isShow = true
                 this.broadcastWidgetHeight()
             },
+            // 获取高度,通知首页,需延时,防止失败,间隔发送多次
             broadcastWidgetHeight() {
                 let _params = this.$getPageParams();
                 for (let index = 1; index < 22; index = index + 10) {
@@ -208,11 +266,13 @@
             }
         },
         created() {
+            // 语言
             linkapi.getLanguage((res) => {
                 this.i18n = this.$window[res]
             })
         },
         mounted() {
+            // 首页刷新
             this.channel.onmessage = (event) => {
                 if (event.data.action === 'RefreshData') {
                     this.getHotState()
@@ -261,7 +321,7 @@
 
     .state-scroller-image {
         width: 451px;
-        height: 75px;
+        height: 95px;
     }
 
     .state-scroller-item {
@@ -287,5 +347,17 @@
 
     .center-height {
         line-height: 40px;
+    }
+
+    .doc-list {
+        width: 451px;
+        height: 95px;
+        background-color: #f2f2f2;
+        padding: 10px;
+    }
+
+    .doc-name {
+        padding-left: 11px;
+        width: 320px;
     }
 </style>
