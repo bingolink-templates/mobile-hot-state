@@ -253,16 +253,14 @@
             // 获取高度,通知首页,需延时,防止失败,间隔发送多次
             broadcastWidgetHeight() {
                 let _params = this.$getPageParams();
-                for (let index = 1; index < 22; index = index + 10) {
-                    setTimeout(() => {
-                        dom.getComponentRect(this.$refs.wrap, (ret) => {
-                            this.channel.postMessage({
-                                widgetHeight: ret.size.height,
-                                id: _params.id
-                            });
-                        });
-                    }, 100 * index)
-                }
+                setTimeout(() => {
+					dom.getComponentRect(this.$refs.wrap, (ret) => {
+						this.channel.postMessage({
+							widgetHeight: ret.size.height,
+							id: _params.id
+						});
+					});
+				}, 200)
             }
         },
         created() {
