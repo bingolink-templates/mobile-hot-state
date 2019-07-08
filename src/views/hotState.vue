@@ -285,7 +285,6 @@
 <style>
     .main {
         flex: 1;
-        background-color: #666;
     }
     .hot-state {
         background-color: #fff;
