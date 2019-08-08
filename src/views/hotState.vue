@@ -13,7 +13,7 @@
                         @click="hotEvent(item.id)">
                         <div class="item-title flex">
                             <div class="flex-dr flex-ac">
-                                <bui-image :src="item.headImage" radius='20px' width="40px" height="40px"
+                                <bui-image placeholder='/image/ellipsis.png' :src="item.headImage" radius='20px' width="40px" height="40px"
                                     v-if="item.headImage" @click="hotEvent(item.id)">
                                 </bui-image>
                                 <div class="avatar-image flex-ac" v-if="!item.headImage">
@@ -24,9 +24,9 @@
                             <text class="f20 fw4 c153">{{item.time}}</text>
                         </div>
                         <div class="item-content">
-                            <text class="f20 c102 lines2 fw4">{{item.content}}</text>
+                            <text class="f22 c102 fw4" :class="[item.isExisImage || item.isExisDoc ? 'lines2' : 'lines4']">{{item.content}}</text>
                             <div v-if='item.isExisDoc' class="flex-dr doc-list mt20 mb20 flex-ac">
-                                <bui-image :src='item.docImage' width="78px" height="76px" @click="hotEvent(item.id)">
+                                <bui-image placeholder='/image/ellipsis.png' :src='item.docImage' width="78px" height="76px" @click="hotEvent(item.id)">
                                 </bui-image>
                                 <text class="doc-name f24 c128 lines1">{{item.docName}}</text>
                             </div>
@@ -36,9 +36,13 @@
                                     <div class="flex-dr">
                                         <div class="item-image pr10" v-for="(image ,index) in item.imageArr"
                                             :key='index'>
-                                            <div v-if="index<=4">
-                                                <bui-image :src='image' width="72px" height="72px"
+                                            <div v-if="index<=4" class='posi-re'>
+                                                <bui-image placeholder='/image/ellipsis.png' :src='image.item' width="72px" height="72px"
                                                     @click="hotEvent(item.id)"></bui-image>
+                                                <div v-if='image.type == 1' class="posi-ab">
+                                                    <bui-image src='/image/play.png' width="30px" height="30px"
+                                                        @click="hotEvent(item.id)"></bui-image>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -49,11 +53,11 @@
                             <div class="flex-dr flex-je">
                                 <div class="flex-dr flex-ac mr30">
                                     <bui-image src="/image/comment.png" width="22px" height="22px"></bui-image>
-                                    <text class="f22 fw4 pl10 c85">{{item.commentCount}}</text>
+                                    <text class="f24 fw4 pl10 c85">{{item.commentCount}}</text>
                                 </div>
                                 <div class="flex-dr flex-ac">
                                     <bui-image src="/image/yes.png" width="22px" height="22px"></bui-image>
-                                    <text class="f22 fw4 pl10 c85">{{item.praiseCount}}</text>
+                                    <text class="f24 fw4 pl10 c85">{{item.praiseCount}}</text>
                                 </div>
                             </div>
                         </div>
@@ -206,27 +210,34 @@
                                     }
                                     hotObj['imageArr'] = []
                                     hotObj['isExisDoc'] = false
+                                    hotObj['isExisImage'] = false
                                     for (let jindex = 0; jindex < element.resourceList.length; jindex++) {
                                         let resourceItem = element.resourceList[jindex];
-                                        // 文件
-                                        if (resourceItem.resourceType == 3) {
+                                        // 视频 默认和图片一起
+                                        if (resourceItem.resourceType == 1 || resourceItem.resourceType == 0) {
+                                            let id = resourceItem.resourceType == 0 ? resourceItem.resourceUrl.split('//')[1] : resourceItem.resourceThumb.split('//')[1]
+                                            let videoItem = {}
+                                            hotObj['isExisImage'] = true
+                                            videoItem['type'] = resourceItem.resourceType
+                                            videoItem['item'] = params.storeUri + "/store/getFile?fileId=" + id + '&size=0x71&access_token=' + token.accessToken
+                                            hotObj['imageArr'].push(videoItem)
+                                            // 文件
+                                        } else if (resourceItem.resourceType == 3) {
                                             // 默认展示一个文档
                                             hotObj['isExisDoc'] = true
                                             let docImage = resourceItem.resourceDescription.split('.')[resourceItem.resourceDescription.split('.').length - 1]
                                             hotObj['docImage'] = this.getFileImages(docImage)
                                             hotObj['docName'] = resourceItem.resourceDescription
                                             break
-                                        // 图片
-                                        } else if (resourceItem.resourceType == 0) {
-                                            let imageId = resourceItem.resourceUrl.split('//')[1]
-                                            let imageItem = params.storeUri + "/store/getFile?fileId=" + imageId + '&size=0x71&access_token=' + token.accessToken
-                                            hotObj['imageArr'].push(imageItem)
-                                        // 链接
-                                        }else if(resourceItem.resourceType == 4){
+                                            // 分享链接
+                                        } else if (resourceItem.resourceType == 4) {
                                             hotObj['isExisDoc'] = true
                                             hotObj['docImage'] = '/image/url.png'
                                             hotObj['docName'] = resourceItem.resourceDescription
                                         }
+                                    }
+                                    if (hotObj['imageArr'].length != 0) {
+                                        hotObj['imageArr'].sort(this.compare("type")); 
                                     }
                                     hotArr.push(hotObj)
                                 }
@@ -245,6 +256,19 @@
                     this.error()
                 })
             },
+            compare(pro) {
+                return function (obj1, obj2) {
+                    var val1 = obj1[pro];
+                    var val2 = obj2[pro];
+                    if (val1 < val2) { //正序
+                        return 1;
+                    } else if (val1 > val2) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            },
             error() {
                 this.isError = false
                 this.isShow = true
@@ -254,16 +278,17 @@
             broadcastWidgetHeight() {
                 let _params = this.$getPageParams();
                 setTimeout(() => {
-					dom.getComponentRect(this.$refs.wrap, (ret) => {
-						this.channel.postMessage({
-							widgetHeight: ret.size.height,
-							id: _params.id
-						});
-					});
-				}, 200)
+                    dom.getComponentRect(this.$refs.wrap, (ret) => {
+                        this.channel.postMessage({
+                            widgetHeight: ret.size.height,
+                            id: _params.id
+                        });
+                    });
+                }, 200)
             }
         },
         created() {
+            this.$fixViewport();
             // 语言
             linkapi.getLanguage((res) => {
                 this.i18n = this.$window[res]
@@ -288,6 +313,7 @@
     }
     .hot-state {
         background-color: #fff;
+        position: relative;
     }
 
     .hot-state-title {
@@ -327,6 +353,9 @@
     }
 
     .item-comment {
+        position: absolute;
+        bottom: 20px;
+        right: 0;
         padding-right: 24px;
     }
 
@@ -356,5 +385,13 @@
     .doc-name {
         padding-left: 11px;
         width: 320px;
+    }
+    .posi-re {
+        position: relative;
+    }
+    .posi-ab {
+        position: absolute;
+        left: 21px;
+        top: 21px;
     }
 </style>
