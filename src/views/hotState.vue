@@ -1,5 +1,5 @@
 <template>
-    <div ref="wrap" class='main'>
+    <div ref="wrap">
         <!-- 热门动态 -->
         <div class="hot-state">
             <div class="hot-state-title flex">
@@ -335,16 +335,23 @@ export default {
             this.broadcastWidgetHeight()
         },
         // 获取高度,通知首页,需延时,防止失败,间隔发送多次
+        getComponentRect(_params) {
+            dom.getComponentRect(this.$refs.wrap, (ret) => {
+                this.channel.postMessage({
+                    widgetHeight: ret.size.height,
+                    id: _params.id
+                });
+            });
+        },
         broadcastWidgetHeight() {
             let _params = this.$getPageParams();
+            // 防止高度通知失败
             setTimeout(() => {
-                dom.getComponentRect(this.$refs.wrap, (ret) => {
-                    this.channel.postMessage({
-                        widgetHeight: ret.size.height,
-                        id: _params.id
-                    });
-                });
+                this.getComponentRect(_params)
             }, 200)
+            setTimeout(() => {
+                this.getComponentRect(_params)
+            }, 1200)
         }
     },
     created() {
@@ -369,17 +376,14 @@ export default {
 
 <style lang="css" src="../css/common.css"></style>
 <style>
-.main {
-    flex: 1;
-}
 .hot-state {
     background-color: #fff;
     position: relative;
 }
 
 .hot-state-title {
-    height: 20wx;
-    margin: 9wx 12wx 5wx 12wx;
+    height: 44wx;
+    padding: 0 12wx;
 }
 
 .hot-state-content {
