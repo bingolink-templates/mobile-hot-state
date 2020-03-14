@@ -2,18 +2,21 @@
     <div ref="wrap">
         <!-- 热门动态 -->
         <div class="hot-state">
-            <div class="hot-state-title flex">
-                <text class="f28 fw5 c0">{{i18n.HotBlog}}</text>
+            <div class="hot-state-title flex" v-bind:style="{'height': $isIPad ? '44wx': '88px'}">
+                <div class="title flex">
+                    <span class="line" v-bind:style="{'background-color': themeColor}"></span>
+                    <text class="c0 f30">{{i18n.HotBlog}}</text>
+                </div>
                 <text class="f24 c153 fw4 pl20 pt10 pb10" @click="hotAllEvent">{{i18n.All}}</text>
             </div>
             <div v-if="isShow">
-                <scroller v-if='hotStateArr.length!=0' class="state-scroller-item flex-dr hot-state-content" scroll-direction="horizontal" show-scrollbar="false">
-                    <div class="hot-state-item bra mr20" v-for="(item,index) in hotStateArr" :key='index' @click="hotEvent(item.id)">
+                <scroller v-if='hotStateArr.length!=0' class="flex-dr hot-state-content" scroll-direction="horizontal" show-scrollbar="false" v-bind:style="{'height': $isIPad ? '173wx': '346px', 'padding-top': $isIPad ? '7wx': '14px'}">
+                    <div class="hot-state-item bra mr20" v-for="(item,index) in hotStateArr" :key='index' @click="hotEvent(item.id)" v-bind:style="{'height': $isIPad ? '160wx': '320px'}">
                         <div class="item-title flex">
                             <div class="flex-dr flex-ac">
                                 <bui-image placeholder='/image/ellipsis.png' :src="item.headImage" radius='10wx' width="20wx" height="20wx" v-if="item.headImage" @click="hotEvent(item.id)">
                                 </bui-image>
-                                <div class="avatar-image flex-ac" v-if="!item.headImage">
+                                <div class="avatar-image flex-ac" v-if="!item.headImage"  v-bind:style="{'height': $isIPad ? '20wx': '40px'}">
                                     <text class="cf f28">{{item.accountNameLastWord}}</text>
                                 </div>
                                 <text class="f24 pl20 fw4 c51">{{item.accountName}}</text>
@@ -22,20 +25,20 @@
                         </div>
                         <div class="item-content">
                             <text v-if='!item.contentFace' class="f22 c102 fw4" :class="[item.isExisImage || item.isExisDoc ? 'lines2' : 'lines4']">{{item.content}}</text>
-                            <div v-else class="content-face-main flex-dr">
+                            <div v-else class="content-face-main flex-dr" v-bind:style="{'height': $isIPad ? '48wx': '96px'}">
                                 <div class="content-face" v-for="face in item.contentFace">
-                                    <text class="content-text lines1 f22 c102 fw4" v-if='!face.img'>{{face.con}}</text>
+                                    <text class="content-text lines1 f22 c102 fw4" v-if='!face.img' v-bind:style="{'height': $isIPad ? '12wx': '24px', 'line-height': $isIPad ? '12wx': '24px'}">{{face.con}}</text>
                                     <bui-image v-else placeholder='/image/ellipsis.png' :src='face.con' width="12wx" height="12wx">
                                     </bui-image>
                                 </div>
                             </div>
-                            <div v-if='item.isExisDoc' class="flex-dr doc-list mt20 mb20 flex-ac">
+                            <div v-if='item.isExisDoc' class="flex-dr doc-list mt20 mb20 flex-ac"  v-bind:style="{'height': $isIPad ? '46wx': '92px'}">
                                 <bui-image placeholder='/image/ellipsis.png' :src='item.docImage' width="36wx" height="36wx" @click="hotEvent(item.id)">
                                 </bui-image>
                                 <text class="doc-name f24 c128 lines1">{{item.docName}}</text>
                             </div>
                             <div v-else>
-                                <scroller class="state-scroller-image mt20 mb20" scroll-direction="horizontal" show-scrollbar="false">
+                                <scroller class="state-scroller-image mt20 mb20" scroll-direction="horizontal" show-scrollbar="false" v-bind:style="{'height': $isIPad ? '48px': '96px'}">
                                     <div class="flex-dr">
                                         <div class="item-image pr10" v-for="(image ,index) in item.imageArr" :key='index'>
                                             <div v-if="index<=4" class='posi-re'>
@@ -63,7 +66,7 @@
                         </div>
                     </div>
                 </scroller>
-                <div class="no-content flex-ac flex-jc" v-if='hotStateArr.length==0'>
+                <div class="no-content flex-ac flex-jc" v-if='hotStateArr.length==0' v-bind:style="{'height': $isIPad ? '83wx': '166px'}">
                     <div class="flex-dr">
                         <bui-image src="/image/sleep.png" width="21wx" height="21wx"></bui-image>
                         <text class="f26 c51 fw4 pl15 center-height">{{isError?i18n.NoneData:i18n.ErrorLoadData}}</text>
@@ -88,8 +91,31 @@ export default {
             i18n: '',
             faceList: {},
             faceArr: [],
-            AT_PATTERN: new RegExp("@{[^}]*}", "g")
+            AT_PATTERN: new RegExp("@{[^}]*}", "g"),
+            themeColor: '',
+            $isIPad: false
         }
+    },
+    created() {
+        this.getFaceImg()
+        this.$fixViewport();
+        // 语言
+        linkapi.getLanguage((res) => {
+            this.i18n = this.$window[res]
+        })
+        linkapi.getThemeColor(res => {
+            this.themeColor = res.background_color;
+        })
+        this.$isIPad = this.$isIPad()
+    },
+    mounted() {
+        // 首页刷新
+        this.channel.onmessage = (event) => {
+            if (event.data.action === 'RefreshData') {
+                this.getHotState()
+            }
+        }
+        this.getHotState()
     },
     methods: {
         hotAllEvent(id) {
@@ -353,23 +379,6 @@ export default {
                 this.getComponentRect(_params)
             }, 1200)
         }
-    },
-    created() {
-        this.getFaceImg()
-        this.$fixViewport();
-        // 语言
-        linkapi.getLanguage((res) => {
-            this.i18n = this.$window[res]
-        })
-    },
-    mounted() {
-        // 首页刷新
-        this.channel.onmessage = (event) => {
-            if (event.data.action === 'RefreshData') {
-                this.getHotState()
-            }
-        }
-        this.getHotState()
     }
 }
 </script>
@@ -382,8 +391,13 @@ export default {
 }
 
 .hot-state-title {
-    height: 44wx;
     padding: 0 12wx;
+}
+
+.line {
+    width: 5px;
+    height: 36px;
+    margin-right: 12px;
 }
 
 .hot-state-content {
@@ -393,7 +407,6 @@ export default {
 
 .hot-state-item {
     width: 553px;
-    height: 160wx;
     border: 1px solid #f8f9fa;
     background-color: #fff;
 }
@@ -409,7 +422,6 @@ export default {
 
 .content-face-main {
     width: 451px;
-    height: 48wx;
     overflow: hidden;
     align-items: center;
     flex-direction: row;
@@ -418,18 +430,10 @@ export default {
 
 .content-text {
     max-width: 401px;
-    height: 12wx;
-    line-height: 12wx;
 }
 
 .state-scroller-image {
     width: 451px;
-    height: 48wx;
-}
-
-.state-scroller-item {
-    height: 170wx;
-    padding-top: 7wx;
 }
 
 .item-comment {
@@ -441,13 +445,11 @@ export default {
 
 .avatar-image {
     width: 20wx;
-    height: 20wx;
     border-radius: 10wx;
     background: #4ca4fe;
 }
 
 .no-content {
-    height: 83wx;
     width: 750px;
 }
 
@@ -457,7 +459,6 @@ export default {
 
 .doc-list {
     width: 451px;
-    height: 46wx;
     background-color: #f2f2f2;
     padding: 4wx;
 }
