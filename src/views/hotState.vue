@@ -88,7 +88,9 @@ export default {
             i18n: '',
             faceList: {},
             faceArr: [],
-            AT_PATTERN: new RegExp("@{[^}]*}", "g")
+            AT_PATTERN: new RegExp("@{[^}]*}", "g"),
+            testId: 'a53395c2-312e-11ea-9001-d00d42d4f5e6',
+            id: '05fce91c-92e7-11e7-a9bc-d00d1a728425'
         }
     },
     methods: {
@@ -226,8 +228,10 @@ export default {
         getHotState(start, end) {
             this.getToken((token) => {
                 link.getServerConfigs([], (params) => {
+                    // a53395c2-312e-11ea-9001-d00d42d4f5e6
+                    // 35142fac-cd8b-11e6-aa2d-d00d1a728425
                     let objData = {
-                        labelId: 'BrowsingBlogs',
+                        navigationId: this.id,
                         cursor: '',
                         limit: 5,
                         commentNum: 5,
@@ -235,7 +239,7 @@ export default {
                         praiseNum: 10
                     }
                     linkapi.get({
-                        url: params.blogUri + '/v1/blog/list/label',
+                        url: params.blogUri + '/v1/blog/list/navigation',
                         data: objData,
                     }).then((res) => {
                         this.isError = true
