@@ -16,7 +16,7 @@
                             <div class="flex-dr flex-ac">
                                 <bui-image placeholder='/image/ellipsis.png' :src="item.headImage" radius='10wx' width="20wx" height="20wx" v-if="item.headImage" @click="hotEvent(item.id)">
                                 </bui-image>
-                                <div class="avatar-image flex-ac" v-if="!item.headImage"  v-bind:style="{'height': $isIPad ? '20wx': '40px'}">
+                                <div class="avatar-image flex-ac" v-if="!item.headImage" v-bind:style="{'height': $isIPad ? '20wx': '40px'}">
                                     <text class="cf f28">{{item.accountNameLastWord}}</text>
                                 </div>
                                 <text class="f24 pl20 fw4 c51">{{item.accountName}}</text>
@@ -32,7 +32,7 @@
                                     </bui-image>
                                 </div>
                             </div>
-                            <div v-if='item.isExisDoc' class="flex-dr doc-list mt20 mb20 flex-ac"  v-bind:style="{'height': $isIPad ? '46wx': '92px'}">
+                            <div v-if='item.isExisDoc' class="flex-dr doc-list mt20 mb20 flex-ac" v-bind:style="{'height': $isIPad ? '46wx': '92px'}">
                                 <bui-image placeholder='/image/ellipsis.png' :src='item.docImage' width="36wx" height="36wx" @click="hotEvent(item.id)">
                                 </bui-image>
                                 <text class="doc-name f24 c128 lines1">{{item.docName}}</text>
@@ -81,6 +81,8 @@
 const link = weex.requireModule("LinkModule");
 const linkapi = require('linkapi');
 const dom = weex.requireModule('dom');
+const storage = weex.requireModule('storage');
+const navigator = weex.requireModule('dom');
 export default {
     data() {
         return {
@@ -93,7 +95,8 @@ export default {
             faceArr: [],
             AT_PATTERN: new RegExp("@{[^}]*}", "g"),
             themeColor: '',
-            $isIPad: false
+            $isIPad: false,
+            urlParams: {}
         }
     },
     created() {
@@ -107,17 +110,39 @@ export default {
             this.themeColor = res.background_color;
         })
         this.$isIPad = this.$isIPad()
+        this.urlParams = this.resolveUrlParams(weex.config.bundleUrl)
     },
     mounted() {
+        var that = this
         // 首页刷新
         this.channel.onmessage = (event) => {
             if (event.data.action === 'RefreshData') {
                 this.getHotState()
             }
         }
-        this.getHotState()
+        this.getStorage(function () {
+            that.getHotState()
+        })
     },
     methods: {
+        getStorage(callback) {
+            let pageId = this.urlParams.userId ? this.urlParams.userId : ''
+            let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
+            storage.getItem('hotblog' + ecode + pageId, res => {
+                if (res.result == 'success') {
+                    var data = JSON.parse(res.data)
+                    this.isError = true
+                    this.isShow = true
+                    this.hotStateArr = data
+                    this.broadcastWidgetHeight()
+                    setTimeout(() => {
+                        this.getHotState()
+                    }, 2000)
+                } else {
+                    callback()
+                }
+            })
+        },
         hotAllEvent(id) {
             link.launchLinkService(['[OpenBuiltIn] \n key=BlogMain'], (res) => { }, (err) => { });
         },
@@ -169,6 +194,29 @@ export default {
                 faceList[imgUrl] = imgWord;
             }
             this.faceList = faceList
+        },
+        resolveUrlParams(url) {
+            // let url = weex.config.bundleUrl;
+            if (!url) return {};
+            url = url + "";
+            var index = url.indexOf("?");
+            if (index > -1) {
+                url = url.substring(index + 1, url.length);
+            }
+            var pairs = url.split("&"),
+                params = {};
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i];
+                var indexEq = pair.indexOf("="),
+                    key = pair,
+                    value = null;
+                if (indexEq > 0) {
+                    key = pair.substring(0, indexEq);
+                    value = pair.substring(indexEq + 1, pair.length);
+                }
+                params[key] = value;
+            }
+            return params;
         },
         getNowFormatDate(type, dat) {
             let date = new Date()
@@ -267,71 +315,15 @@ export default {
                         this.isError = true
                         this.isShow = true
                         if (res.code == 200) {
-                            let hotArr = []
-                            for (let index = 0; index < res.data.length; index++) {
-                                let element = res.data[index];
-                                let hotObj = {}
-                                hotObj['commentCount'] = element.commentCount
-                                hotObj['praiseCount'] = element.praiseCount
-                                let newDate = element.blogInfo.publishTime
-                                let getMonthWeek = this.getNowFormatDate(1, newDate)
-                                hotObj['time'] = getMonthWeek
-                                hotObj['accountName'] = element.blogInfo.accountName
-                                var content = element.blogInfo.content
-                                if (content.indexOf('@{"id"') != -1) {
-                                    var users = element.blogInfo.content.match(this.AT_PATTERN);
-                                    var userName = JSON.parse(users[0].replace('@', ''))
-                                    var co = content.substring(0, content.indexOf('@{"id"'))
-                                    var cc = content.replace(co, '').replace(users, '')
-                                    hotObj['content'] = userName.name ? (co + "@" + userName.name + cc) : co + cc
-                                } else {
-                                    hotObj['content'] = content
-                                }
-                                hotObj['contentFace'] = this.formatMsgContent(element.blogInfo.content)
-                                hotObj['id'] = element.blogInfo.blogId
-                                hotObj['accountNameLastWord'] = element.blogInfo.accountName.charAt(element.blogInfo.accountName.length - 1)
-                                hotObj['headImage'] = ''
-                                if (element.blogInfo.accountImage) {
-                                    hotObj['headImage'] = params.uamUri + "/api/uam/getAvatarById?id=" + element.blogInfo.accountId + '&type=1&width=40&height=40&&access_token=' + token.accessToken
-                                }
-                                hotObj['imageArr'] = []
-                                hotObj['isExisDoc'] = false
-                                hotObj['isExisImage'] = false
-                                for (let jindex = 0; jindex < element.resourceList.length; jindex++) {
-                                    let resourceItem = element.resourceList[jindex];
-                                    // 视频 默认和图片一起
-                                    if (resourceItem.resourceType == 1 || resourceItem.resourceType == 0) {
-                                        let id = resourceItem.resourceType == 0 ? resourceItem.resourceUrl.split('//')[1] : resourceItem.resourceThumb.split('//')[1]
-                                        let videoItem = {}
-                                        hotObj['isExisImage'] = true
-                                        videoItem['type'] = resourceItem.resourceType
-                                        videoItem['item'] = params.storeUri + "/store/getFile?fileId=" + id + '&size=0x71&access_token=' + token.accessToken
-                                        hotObj['imageArr'].push(videoItem)
-                                        // 文件
-                                    } else if (resourceItem.resourceType == 3) {
-                                        // 默认展示一个文档
-                                        hotObj['isExisDoc'] = true
-                                        let docImage = resourceItem.resourceDescription.split('.')[resourceItem.resourceDescription.split('.').length - 1]
-                                        hotObj['docImage'] = this.getFileImages(docImage)
-                                        hotObj['docName'] = resourceItem.resourceDescription
-                                        break
-                                        // 分享链接
-                                    } else if (resourceItem.resourceType == 4) {
-                                        hotObj['isExisDoc'] = true
-                                        hotObj['docImage'] = '/image/url.png'
-                                        hotObj['docName'] = resourceItem.resourceDescription
-                                    }
-                                }
-                                if (hotObj['imageArr'].length != 0) {
-                                    hotObj['imageArr'].sort(this.compare("type"));
-                                }
-                                hotArr.push(hotObj)
+                            try {
+                                this.hotStateData(params, token, res)
+                            } catch (error) {
+                                this.error()
                             }
-                            this.hotStateArr = hotArr
-                            this.broadcastWidgetHeight()
                         } else {
-                            this.broadcastWidgetHeight()
+                            this.error()
                         }
+                        this.broadcastWidgetHeight()
                     }, (err) => {
                         this.error()
                     })
@@ -341,6 +333,72 @@ export default {
             }, (err) => {
                 this.error()
             })
+        },
+        hotStateData(params, token, res) {
+            let hotArr = []
+            for (let index = 0; index < res.data.length; index++) {
+                let element = res.data[index];
+                let hotObj = {}
+                hotObj['commentCount'] = element.commentCount
+                hotObj['praiseCount'] = element.praiseCount
+                let newDate = element.blogInfo.publishTime
+                let getMonthWeek = this.getNowFormatDate(1, newDate)
+                hotObj['time'] = getMonthWeek
+                hotObj['accountName'] = element.blogInfo.accountName
+                var content = element.blogInfo.content
+                if (content.indexOf('@{"id"') != -1) {
+                    var users = element.blogInfo.content.match(this.AT_PATTERN);
+                    var userName = JSON.parse(users[0].replace('@', ''))
+                    var co = content.substring(0, content.indexOf('@{"id"'))
+                    var cc = content.replace(co, '').replace(users, '')
+                    hotObj['content'] = userName.name ? (co + "@" + userName.name + cc) : co + cc
+                } else {
+                    hotObj['content'] = content
+                }
+                hotObj['contentFace'] = this.formatMsgContent(element.blogInfo.content)
+                hotObj['id'] = element.blogInfo.blogId
+                hotObj['accountNameLastWord'] = element.blogInfo.accountName.charAt(element.blogInfo.accountName.length - 1)
+                hotObj['headImage'] = ''
+                if (element.blogInfo.accountImage) {
+                    hotObj['headImage'] = params.uamUri + "/api/uam/getAvatarById?id=" + element.blogInfo.accountId + '&type=1&width=40&height=40&access_token=' + token.accessToken
+                }
+                hotObj['imageArr'] = []
+                hotObj['isExisDoc'] = false
+                hotObj['isExisImage'] = false
+                for (let jindex = 0; jindex < element.resourceList.length; jindex++) {
+                    let resourceItem = element.resourceList[jindex];
+                    // 视频 默认和图片一起
+                    if (resourceItem.resourceType == 1 || resourceItem.resourceType == 0) {
+                        let id = resourceItem.resourceType == 0 ? resourceItem.resourceUrl.split('//')[1] : resourceItem.resourceThumb.split('//')[1]
+                        let videoItem = {}
+                        hotObj['isExisImage'] = true
+                        videoItem['type'] = resourceItem.resourceType
+                        videoItem['item'] = params.storeUri + "/store/getFile?fileId=" + id + '&size=0x71&access_token=' + token.accessToken
+                        hotObj['imageArr'].push(videoItem)
+                        // 文件
+                    } else if (resourceItem.resourceType == 3) {
+                        // 默认展示一个文档
+                        hotObj['isExisDoc'] = true
+                        let docImage = resourceItem.resourceDescription.split('.')[resourceItem.resourceDescription.split('.').length - 1]
+                        hotObj['docImage'] = this.getFileImages(docImage)
+                        hotObj['docName'] = resourceItem.resourceDescription
+                        break
+                        // 分享链接
+                    } else if (resourceItem.resourceType == 4) {
+                        hotObj['isExisDoc'] = true
+                        hotObj['docImage'] = '/image/url.png'
+                        hotObj['docName'] = resourceItem.resourceDescription
+                    }
+                }
+                if (hotObj['imageArr'].length != 0) {
+                    hotObj['imageArr'].sort(this.compare("type"));
+                }
+                hotArr.push(hotObj)
+            }
+            this.hotStateArr = hotArr
+            let pageId = this.urlParams.userId ? this.urlParams.userId : ''
+            let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
+            storage.setItem('hotblog' + ecode + pageId, JSON.stringify(hotArr))
         },
         compare(pro) {
             return function (obj1, obj2) {
