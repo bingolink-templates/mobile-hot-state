@@ -128,7 +128,7 @@ export default {
         getStorage(callback) {
             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
             let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-            storage.getItem('hotblog' + ecode + pageId, res => {
+            storage.getItem('hotblog2020525' + ecode + pageId, res => {
                 if (res.result == 'success') {
                     var data = JSON.parse(res.data)
                     this.isError = true
@@ -346,7 +346,7 @@ export default {
                 hotObj['time'] = getMonthWeek
                 hotObj['accountName'] = element.blogInfo.accountName
                 var content = element.blogInfo.content
-                if (content.indexOf('@{"id"') != -1) {
+                if (content && content.indexOf('@{"id"') != -1) {
                     var users = element.blogInfo.content.match(this.AT_PATTERN);
                     var userName = JSON.parse(users[0].replace('@', ''))
                     var co = content.substring(0, content.indexOf('@{"id"'))
@@ -398,7 +398,7 @@ export default {
             this.hotStateArr = hotArr
             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
             let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-            storage.setItem('hotblog' + ecode + pageId, JSON.stringify(hotArr))
+            storage.setItem('hotblog2020525' + ecode + pageId, JSON.stringify(hotArr))
         },
         compare(pro) {
             return function (obj1, obj2) {
