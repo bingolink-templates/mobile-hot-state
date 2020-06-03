@@ -24,8 +24,9 @@
                             <text class="f20 fw4 c153">{{item.time}}</text>
                         </div>
                         <div class="item-content">
-                            <text v-if='!item.contentFace' class="f24 c102 fw4" :class="[item.isExisImage || item.isExisDoc ? 'lines3' : 'lines4']">{{item.content}}</text>
-                            <div v-else class="content-face-main flex-dr" v-bind:style="{'height': $isIPad ? '48wx': '96px'}">
+                            <text v-if='!item.contentFace && !item.produce' class="f24 c102 fw4" :class="[item.isExisImage || item.isExisDoc ? 'lines3' : 'lines4']">{{item.content}}</text>
+                            <text v-if='!item.contentFace && item.produce' class="f24 c102 fw4 lines5">{{item.content}}</text>
+                            <div v-if='item.contentFace' class="content-face-main flex-dr" v-bind:style="{'height': $isIPad ? '48wx': '96px'}">
                                 <div class="content-face" v-for="face in item.contentFace">
                                     <text class="content-text lines1 f24 c102 fw4" v-if='!face.img' v-bind:style="{'height': $isIPad ? '15wx': '30px', 'line-height': $isIPad ? '15wx': '30px'}">{{face.con}}</text>
                                     <bui-image class="content-image" v-else placeholder='/image/ellipsis.png' :src='face.con' width="13wx" height="13wx">
@@ -120,15 +121,15 @@ export default {
                 this.getHotState()
             }
         }
-        this.getStorage(function () {
             that.getHotState()
-        })
+        // this.getStorage(function () {
+        // })
     },
     methods: {
         getStorage(callback) {
             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
             let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-            storage.getItem('hotblog2020525' + ecode + pageId, res => {
+            storage.getItem('hotblog202063' + ecode + pageId, res => {
                 if (res.result == 'success') {
                     var data = JSON.parse(res.data)
                     this.isError = true
@@ -147,7 +148,7 @@ export default {
             link.launchLinkService(['[OpenBuiltIn] \n key=BlogMain'], (res) => { }, (err) => { });
         },
         hotEvent(id) {
-            if(id == 1){
+            if (id == 1) {
                 link.launchLinkService(['[OpenBuiltIn] \n key=BlogMain'], (res) => { }, (err) => { });
                 return
             }
@@ -320,7 +321,13 @@ export default {
                         this.isShow = true
                         if (res.code == 200) {
                             try {
-                                this.hotStateData(params, token, res)
+                                if (res.data.length <= 2) {
+                                    linkapi.getLoginInfo((info) => {
+                                        this.hotStateData(params, token, res, info.userName)
+                                    })
+                                } else {
+                                    this.hotStateData(params, token, res, null)
+                                }
                             } catch (error) {
                                 this.error()
                             }
@@ -338,7 +345,7 @@ export default {
                 this.error()
             })
         },
-        hotStateData(params, token, res) {
+        hotStateData(params, token, res, userName) {
             let hotArr = []
             for (let index = 0; index < res.data.length; index++) {
                 let element = res.data[index];
@@ -409,26 +416,27 @@ export default {
                 }
                 hotArr.push(hotObj)
             }
-            if(hotArr.length <= 2){
+            if (userName) {
                 hotArr.unshift({
                     commentCount: 0,
                     praiseCount: 0,
                     time: '',
                     headImage: '/image/system.png',
                     accountName: '聆客在线',
-                    content: '欢迎您使用聆客。这里可以一起聊天、事务审批、任务管理、日常安排、文档分享，另外还有CRM、项目协作等好多功能，赶紧邀请小伙伴一起体验吧。',
+                    content: 'hi，'+ userName +'。欢迎您使用聆客。这里可以一起聊天、事务审批、任务管理、日常安排、文档分享，另外还有CRM、项目协作等好多功能，赶紧邀请小伙伴一起体验吧。',
                     contentFace: null,
                     id: 1,
                     accountNameLastWord: '聆',
                     imageArr: [],
                     isExisDoc: false,
-                    isExisImage: false
+                    isExisImage: false,
+                    produce: true
                 })
             }
             this.hotStateArr = hotArr
             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
             let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-            storage.setItem('hotblog2020525' + ecode + pageId, JSON.stringify(hotArr))
+            storage.setItem('hotblog202063' + ecode + pageId, JSON.stringify(hotArr))
         },
         strCharPosition(str, char) {
             var pos;
