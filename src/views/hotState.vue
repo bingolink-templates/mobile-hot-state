@@ -14,17 +14,17 @@
                     <div class="hot-state-item bra mr20" v-for="(item,index) in hotStateArr" :key='index' @click="hotEvent(item.id)" v-bind:style="{'height': $isIPad ? '160wx': '320px'}">
                         <div class="item-title flex">
                             <div class="flex-dr flex-ac">
-                                <bui-image placeholder='/image/ellipsis.png' :src="item.headImage" radius='10wx' width="20wx" height="20wx" v-if="item.headImage" @click="hotEvent(item.id)">
+                                <bui-image placeholder='/image/ellipsis.png' :src="item.headImage" radius='15wx' width="30wx" height="30wx" v-if="item.headImage" @click="hotEvent(item.id)">
                                 </bui-image>
-                                <div class="avatar-image flex-ac" v-if="!item.headImage" v-bind:style="{'height': $isIPad ? '20wx': '40px'}">
-                                    <text class="cf f28">{{item.accountNameLastWord}}</text>
+                                <div class="avatar-image flex-ac flex-jc" v-if="!item.headImage" v-bind:style="{'height': $isIPad ? '30wx': '60px'}">
+                                    <text class="cf f30">{{item.accountNameLastWord}}</text>
                                 </div>
                                 <text class="f24 pl20 fw4 c51">{{item.accountName}}</text>
                             </div>
                             <text class="f20 fw4 c153">{{item.time}}</text>
                         </div>
                         <div class="item-content">
-                            <text v-if='!item.contentFace && !item.produce' class="f24 c102 fw4" :class="[item.isExisImage || item.isExisDoc ? 'lines3' : 'lines4']">{{item.content}}</text>
+                            <text style="padding-bottom: 5px;" v-if='!item.contentFace && !item.produce' class="f24 c102 fw4" :class="[item.isExisImage || item.isExisDoc ? 'lines3' : 'lines4']">{{item.content}}</text>
                             <text v-if='!item.contentFace && item.produce' class="f24 c102 fw4 lines5">{{item.content}}</text>
                             <div v-if='item.contentFace' class="content-face-main flex-dr" v-bind:style="{'height': $isIPad ? '48wx': '96px'}">
                                 <div class="content-face" v-for="face in item.contentFace">
@@ -43,9 +43,9 @@
                                     <div class="flex-dr">
                                         <div class="item-image pr10" v-for="(image ,index) in item.imageArr" :key='index'>
                                             <div v-if="index<=4" class='posi-re'>
-                                                <bui-image placeholder='/image/ellipsis.png' :src='image.item' width="36wx" height="36wx" @click="hotEvent(item.id)"></bui-image>
+                                                <bui-image placeholder='/image/ellipsis.png' :src='image.item' width="30wx" height="30wx" @click="hotEvent(item.id)"></bui-image>
                                                 <div v-if='image.type == 1' class="posi-ab">
-                                                    <bui-image src='/image/play.png' width="15wx" height="15wx" @click="hotEvent(item.id)"></bui-image>
+                                                    <bui-image src='/image/play.png' width="12wx" height="12wx" @click="hotEvent(item.id)"></bui-image>
                                                 </div>
                                             </div>
                                         </div>
@@ -121,15 +121,15 @@ export default {
                 this.getHotState()
             }
         }
+        this.getStorage(function () {
             that.getHotState()
-        // this.getStorage(function () {
-        // })
+        })
     },
     methods: {
         getStorage(callback) {
             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
             let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-            storage.getItem('hotblog202063' + ecode + pageId, res => {
+            storage.getItem('hotblog202064' + ecode + pageId, res => {
                 if (res.result == 'success') {
                     var data = JSON.parse(res.data)
                     this.isError = true
@@ -423,7 +423,7 @@ export default {
                     time: '',
                     headImage: '/image/system.png',
                     accountName: '聆客在线',
-                    content: 'hi，'+ userName +'。欢迎您使用聆客。这里可以一起聊天、事务审批、任务管理、日常安排、文档分享，另外还有CRM、项目协作等好多功能，赶紧邀请小伙伴一起体验吧。',
+                    content: 'hi，' + userName + '。欢迎您使用聆客。在这里可以跟同事一起聊天、事务审批、任务管理、日程安排、文档分享，另外还有CRM、项目协作等好多功能，赶紧邀请小伙伴一起体验吧。',
                     contentFace: null,
                     id: 1,
                     accountNameLastWord: '聆',
@@ -436,7 +436,7 @@ export default {
             this.hotStateArr = hotArr
             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
             let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-            storage.setItem('hotblog202063' + ecode + pageId, JSON.stringify(hotArr))
+            storage.setItem('hotblog202064' + ecode + pageId, JSON.stringify(hotArr))
         },
         strCharPosition(str, char) {
             var pos;
@@ -518,7 +518,7 @@ export default {
 }
 
 .item-title {
-    margin: 12wx 12wx 5wx 9wx;
+    margin: 12wx 12wx 0 9wx;
 }
 
 .item-content {
@@ -554,8 +554,8 @@ export default {
 }
 
 .avatar-image {
-    width: 20wx;
-    border-radius: 10wx;
+    width: 30wx;
+    border-radius: 15wx;
     background: #4ca4fe;
 }
 
@@ -582,7 +582,7 @@ export default {
 }
 .posi-ab {
     position: absolute;
-    left: 11wx;
-    top: 11wx;
+    left: 9wx;
+    top: 10wx;
 }
 </style>
