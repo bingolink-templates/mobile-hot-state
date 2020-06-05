@@ -69,7 +69,6 @@
                 </scroller>
                 <div class="no-content flex-ac flex-jc" v-if='hotStateArr.length==0' v-bind:style="{'height': $isIPad ? '83wx': '166px'}">
                     <div class="flex-dr">
-                        <bui-image src="/image/sleep.png" width="21wx" height="21wx"></bui-image>
                         <text class="f26 c51 fw4 pl15 center-height">{{isError?i18n.NoneData:i18n.ErrorLoadData}}</text>
                     </div>
                 </div>
