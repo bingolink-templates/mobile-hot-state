@@ -320,13 +320,7 @@ export default {
                         this.isShow = true
                         if (res.code == 200) {
                             try {
-                                if (res.data.length <= 2) {
-                                    linkapi.getLoginInfo((info) => {
-                                        this.hotStateData(params, token, res, info.userName)
-                                    })
-                                } else {
-                                    this.hotStateData(params, token, res, null)
-                                }
+                                this.hotStateData(params, token, res, null)
                             } catch (error) {
                                 this.error()
                             }
