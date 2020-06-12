@@ -25,7 +25,7 @@
                         </div>
                         <div class="item-content">
                             <text style="padding-bottom: 5px;" v-if='!item.contentFace && !item.produce' class="f24 c102 fw4" :class="[item.isExisImage || item.isExisDoc ? 'lines3' : 'lines4']">{{item.content}}</text>
-                            <text v-if='!item.contentFace && item.produce' class="f24 c102 fw4 lines5">{{item.content}}</text>
+                            <text v-if='!item.contentFace && item.produce'  style="padding-bottom: 3px;" class="f24 c102 fw4 lines5">{{item.content}}</text>
                             <div v-if='item.contentFace' class="content-face-main flex-dr" v-bind:style="{'height': $isIPad ? '48wx': '96px'}">
                                 <div class="content-face" v-for="face in item.contentFace">
                                     <text class="content-text lines1 f24 c102 fw4" v-if='!face.img' v-bind:style="{'height': $isIPad ? '15wx': '30px', 'line-height': $isIPad ? '15wx': '30px'}">{{face.con}}</text>
@@ -128,7 +128,7 @@ export default {
         getStorage(callback) {
             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
             let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-            storage.getItem('hotblog202064' + ecode + pageId, res => {
+            storage.getItem('hotblog2020612' + ecode + pageId, res => {
                 if (res.result == 'success') {
                     var data = JSON.parse(res.data)
                     this.isError = true
@@ -344,7 +344,7 @@ export default {
                 this.error()
             })
         },
-        hotStateData(params, token, res, userName) {
+        hotStateData(params, token, res, isUserName) {
             let hotArr = []
             for (let index = 0; index < res.data.length; index++) {
                 let element = res.data[index];
@@ -415,14 +415,14 @@ export default {
                 }
                 hotArr.push(hotObj)
             }
-            if (userName) {
+            if (isUserName) {
                 hotArr.unshift({
                     commentCount: 0,
                     praiseCount: 0,
                     time: '',
                     headImage: '/image/system.png',
                     accountName: '聆客在线',
-                    content: 'hi，' + userName + '。欢迎您使用聆客。在这里可以跟同事一起聊天、事务审批、任务管理、日程安排、文档分享，另外还有CRM、项目协作等好多功能，赶紧邀请小伙伴一起体验吧。',
+                    content: 'hi，' + isUserName + '。欢迎您使用聆客。在这里可以跟同事一起聊天、事务审批、任务管理、日程安排、文档分享，另外还有CRM、项目协作等好多功能，赶紧邀请小伙伴一起体验吧。',
                     contentFace: null,
                     id: 1,
                     accountNameLastWord: '聆',
@@ -435,7 +435,7 @@ export default {
             this.hotStateArr = hotArr
             let pageId = this.urlParams.userId ? this.urlParams.userId : ''
             let ecode = this.urlParams.ecode ? this.urlParams.ecode : 'localhost'
-            storage.setItem('hotblog202064' + ecode + pageId, JSON.stringify(hotArr))
+            storage.setItem('hotblog2020612' + ecode + pageId, JSON.stringify(hotArr))
         },
         strCharPosition(str, char) {
             var pos;
