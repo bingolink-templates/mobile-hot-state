@@ -10,25 +10,25 @@
                 <text class="f24 c153 fw4 pl20 pt10 pb10" @click="hotAllEvent">{{i18n.All}}</text>
             </div>
             <div v-if="isShow">
-                <scroller v-if='hotStateArr.length!=0' class="flex-dr hot-state-content" scroll-direction="horizontal" show-scrollbar="false" v-bind:style="{'height': $isIPad ? '162wx': '324px', 'padding-top': $isIPad ? '2wx': '4px'}">
+                <scroller v-if='hotStateArr.length!=0' class="flex-dr hot-state-content" scroll-direction="horizontal" show-scrollbar="false" v-bind:style="{'height': $isIPad ? '171wx': '342px', 'padding-top': $isIPad ? '10wx': '20px'}">
                     <div class="hot-state-item bra mr20" v-for="(item,index) in hotStateArr" :key='index' @click="hotEvent(item.id)" v-bind:style="{'height': $isIPad ? '160wx': '320px'}">
                         <div class="item-title flex">
                             <div class="flex-dr flex-ac">
-                                <bui-image placeholder='/image/ellipsis.png' :src="item.headImage" radius='15wx' width="30wx" height="30wx" v-if="item.headImage" @click="hotEvent(item.id)">
+                                <bui-image placeholder='/image/ellipsis.png' :src="item.headImage" radius='16wx' width="32wx" height="32wx" v-if="item.headImage" @click="hotEvent(item.id)">
                                 </bui-image>
-                                <div class="avatar-image flex-ac flex-jc" v-if="!item.headImage" v-bind:style="{'height': $isIPad ? '30wx': '60px'}">
+                                <div class="avatar-image flex-ac flex-jc" v-if="!item.headImage" v-bind:style="{'height': $isIPad ? '32wx': '64px'}">
                                     <text class="cf f30">{{item.accountNameLastWord}}</text>
                                 </div>
-                                <text class="f24 pl20 fw4 c51">{{item.accountName}}</text>
+                                <text class="f30 pl20 fw4 c51">{{item.accountName}}</text>
                             </div>
-                            <text class="f20 fw4 c153">{{item.time}}</text>
+                            <text class="f24 fw4 c153">{{item.time}}</text>
                         </div>
                         <div class="item-content">
-                            <text style="padding-bottom: 5px;" v-if='!item.contentFace && !item.produce' class="f24 c102 fw4" :class="[item.isExisImage || item.isExisDoc ? 'lines3' : 'lines4']">{{item.content}}</text>
-                            <text v-if='!item.contentFace && item.produce'  style="padding-bottom: 3px;" class="f24 c102 fw4 lines5">{{item.content}}</text>
+                            <text style="padding-bottom: 5px;" v-if='!item.contentFace && !item.produce' class="f28 c102 fw4" :class="[item.isExisImage || item.isExisDoc ? 'lines2' : 'lines3']">{{item.content}}</text>
+                            <text v-if='!item.contentFace && item.produce' style="padding-bottom: 3px;" class="f28 c102 fw4 lines5">{{item.content}}</text>
                             <div v-if='item.contentFace' class="content-face-main flex-dr" v-bind:style="{'height': $isIPad ? '48wx': '96px'}">
                                 <div class="content-face" v-for="face in item.contentFace">
-                                    <text class="content-text lines1 f24 c102 fw4" v-if='!face.img' v-bind:style="{'height': $isIPad ? '15wx': '30px', 'line-height': $isIPad ? '15wx': '30px'}">{{face.con}}</text>
+                                    <text class="content-text lines1 f28 c102 fw4" v-if='!face.img' v-bind:style="{'height': $isIPad ? '15wx': '30px', 'line-height': $isIPad ? '15wx': '30px'}">{{face.con}}</text>
                                     <bui-image class="content-image" v-else placeholder='/image/ellipsis.png' :src='face.con' width="13wx" height="13wx">
                                     </bui-image>
                                 </div>
@@ -56,12 +56,12 @@
                         <div class="item-comment">
                             <div class="flex-dr flex-je">
                                 <div class="flex-dr flex-ac mr30">
-                                    <bui-image src="/image/comment.png" width="11wx" height="11wx"></bui-image>
+                                    <bui-image src="/image/comment.png" width="12wx" height="12wx"></bui-image>
                                     <text class="f24 fw4 pl10 c85">{{item.commentCount}}</text>
                                 </div>
-                                <div class="flex-dr flex-ac">
-                                    <bui-image src="/image/yes.png" width="11wx" height="11wx"></bui-image>
-                                    <text class="f24 fw4 pl10 c85">{{item.praiseCount}}</text>
+                                <div class="flex-dr flex-ac flex-jc">
+                                    <bui-image src="/image/yes.png" width="12wx" height="12wx"></bui-image>
+                                    <text class="f24 fw4 pl10 c85 mt4">{{item.praiseCount}}</text>
                                 </div>
                             </div>
                         </div>
@@ -82,7 +82,8 @@ const link = weex.requireModule("LinkModule");
 const linkapi = require('linkapi');
 const dom = weex.requireModule('dom');
 const storage = weex.requireModule('storage');
-const navigator = weex.requireModule('dom');
+const globalEvent = weex.requireModule('globalEvent');
+const navigator = weex.requireModule('navigator');
 export default {
     data() {
         return {
@@ -123,6 +124,9 @@ export default {
         this.getStorage(function () {
             that.getHotState()
         })
+        globalEvent.addEventListener("androidback", function (e) {
+            navigator.close()
+        });
     },
     methods: {
         getStorage(callback) {
@@ -507,7 +511,7 @@ export default {
 
 .hot-state-content {
     padding-left: 24px;
-    background-color: #f8f9fa;
+    background-color: #f3f5f8;
 }
 
 .hot-state-item {
@@ -522,7 +526,7 @@ export default {
 
 .item-content {
     width: 451px;
-    margin: 0 12wx 0 39wx;
+    margin: 0 12wx 0 50wx;
 }
 
 .content-face-main {
@@ -547,14 +551,14 @@ export default {
 
 .item-comment {
     position: absolute;
-    bottom: 3wx;
+    bottom: 5wx;
     right: 0;
     padding-right: 24px;
 }
 
 .avatar-image {
-    width: 30wx;
-    border-radius: 15wx;
+    width: 32wx;
+    border-radius: 16wx;
     background: #4ca4fe;
 }
 
