@@ -511,7 +511,7 @@ export default {
 
 .hot-state-content {
     padding-left: 24px;
-    background-color: #f3f5f8;
+    background-color: #f8f8f8;
 }
 
 .hot-state-item {
