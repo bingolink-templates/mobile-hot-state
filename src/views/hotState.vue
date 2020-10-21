@@ -2,7 +2,7 @@
     <div ref="wrap">
         <!-- 热门动态 -->
         <div class="hot-state">
-            <div class="hot-state-title flex" v-bind:style="{'height': $isIPad ? '44wx': '88px'}">
+            <div class="hot-state-title flex" v-bind:style="{'height': isIPad ? '44wx': '88px'}">
                 <div class="title flex">
                     <span class="line" v-bind:style="{'background-color': themeColor}"></span>
                     <text class="c0 f30">{{i18n.HotBlog}}</text>
@@ -10,13 +10,13 @@
                 <text class="f24 c153 fw4 pl20 pt10 pb10" @click="hotAllEvent">{{i18n.All}}</text>
             </div>
             <div v-if="isShow">
-                <scroller v-if='hotStateArr.length!=0' class="flex-dr hot-state-content" scroll-direction="horizontal" show-scrollbar="false" v-bind:style="{'height': $isIPad ? '171wx': '342px', 'padding-top': $isIPad ? '10wx': '20px'}">
-                    <div class="hot-state-item bra mr20" v-for="(item,index) in hotStateArr" :key='index' @click="hotEvent(item.id)" v-bind:style="{'height': $isIPad ? '160wx': '320px'}">
+                <scroller v-if='hotStateArr.length!=0' class="flex-dr hot-state-content" scroll-direction="horizontal" show-scrollbar="false" v-bind:style="{'height': isIPad ? '171wx': '342px', 'padding-top': isIPad ? '10wx': '20px'}">
+                    <div class="hot-state-item bra mr20" v-for="(item,index) in hotStateArr" :key='index' @click="hotEvent(item.id)" v-bind:style="{'height': isIPad ? '160wx': '320px'}">
                         <div class="item-title flex">
                             <div class="flex-dr flex-ac">
                                 <bui-image placeholder='/image/ellipsis.png' :src="item.headImage" radius='16wx' width="32wx" height="32wx" v-if="item.headImage" @click="hotEvent(item.id)">
                                 </bui-image>
-                                <div class="avatar-image flex-ac flex-jc" v-if="!item.headImage" v-bind:style="{'height': $isIPad ? '32wx': '64px'}">
+                                <div class="avatar-image flex-ac flex-jc" v-if="!item.headImage" >
                                     <text class="cf f30">{{item.accountNameLastWord}}</text>
                                 </div>
                                 <text class="f30 pl20 fw4 c51">{{item.accountName}}</text>
@@ -26,20 +26,20 @@
                         <div class="item-content">
                             <text style="padding-bottom: 5px;" v-if='!item.contentFace && !item.produce' class="f28 c102 fw4" :class="[item.isExisImage || item.isExisDoc ? 'lines2' : 'lines3']">{{item.content}}</text>
                             <text v-if='!item.contentFace && item.produce' style="padding-bottom: 3px;" class="f28 c102 fw4 lines5">{{item.content}}</text>
-                            <div v-if='item.contentFace' class="content-face-main flex-dr" v-bind:style="{'height': $isIPad ? '48wx': '96px'}">
-                                <div class="content-face" v-for="face in item.contentFace">
-                                    <text class="content-text lines1 f28 c102 fw4" v-if='!face.img' v-bind:style="{'height': $isIPad ? '15wx': '30px', 'line-height': $isIPad ? '15wx': '30px'}">{{face.con}}</text>
+                            <div v-if='item.contentFace' class="content-face-main flex-dr" v-bind:style="{'height': isIPad ? '48wx': '96px'}">
+                                <div v-for="(face, i) in item.contentFace" :key="i">
+                                    <text class="content-text lines1 f28 c102 fw4" v-if='!face.img' v-bind:style="{'height': isIPad ? '15wx': '30px', 'line-height': isIPad ? '15wx': '30px'}">{{face.con}}</text>
                                     <bui-image class="content-image" v-else placeholder='/image/ellipsis.png' :src='face.con' width="13wx" height="13wx">
                                     </bui-image>
                                 </div>
                             </div>
-                            <div v-if='item.isExisDoc' class="flex-dr doc-list mt20 mb20 flex-ac" v-bind:style="{'height': $isIPad ? '30wx': '60px'}">
+                            <div v-if='item.isExisDoc' class="flex-dr doc-list mt20 mb20 flex-ac" v-bind:style="{'height': isIPad ? '30wx': '60px'}">
                                 <bui-image placeholder='/image/ellipsis.png' :src='item.docImage' width="25wx" height="25wx" @click="hotEvent(item.id)">
                                 </bui-image>
                                 <text class="doc-name f24 c128 lines1">{{item.docName}}</text>
                             </div>
                             <div v-else>
-                                <scroller class="state-scroller-image mt20 mb20" scroll-direction="horizontal" show-scrollbar="false" v-bind:style="{'height': $isIPad ? '48px': '96px'}">
+                                <scroller class="state-scroller-image mt20 mb20" scroll-direction="horizontal" show-scrollbar="false" v-bind:style="{'height': isIPad ? '48px': '96px'}">
                                     <div class="flex-dr">
                                         <div class="item-image pr10" v-for="(image ,index) in item.imageArr" :key='index'>
                                             <div v-if="index<=4" class='posi-re'>
@@ -55,19 +55,19 @@
                         </div>
                         <div class="item-comment">
                             <div class="flex-dr flex-je">
-                                <div class="flex-dr flex-ac mr30">
+                                <div class="flex-dr flex-ac  flex-jc mr30">
                                     <bui-image src="/image/comment.png" width="12wx" height="12wx"></bui-image>
                                     <text class="f24 fw4 pl10 c85">{{item.commentCount}}</text>
                                 </div>
                                 <div class="flex-dr flex-ac flex-jc">
                                     <bui-image src="/image/yes.png" width="12wx" height="12wx"></bui-image>
-                                    <text class="f24 fw4 pl10 c85 mt4">{{item.praiseCount}}</text>
+                                    <text class="f24 fw4 pl10 c85">{{item.praiseCount}}</text>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </scroller>
-                <div class="no-content flex-ac flex-jc" v-if='hotStateArr.length==0' v-bind:style="{'height': $isIPad ? '83wx': '166px'}">
+                <div class="no-content flex-ac flex-jc" v-if='hotStateArr.length==0' v-bind:style="{'height': isIPad ? '83wx': '166px'}">
                     <div class="flex-dr">
                         <text class="f26 c51 fw4 pl15 center-height">{{isError?i18n.NoneData:i18n.ErrorLoadData}}</text>
                     </div>
@@ -96,7 +96,7 @@ export default {
             faceArr: [],
             AT_PATTERN: new RegExp("@{[^}]*}", "g"),
             themeColor: '',
-            $isIPad: false,
+            isIPad: false,
             urlParams: {}
         }
     },
@@ -110,7 +110,7 @@ export default {
         linkapi.getThemeColor(res => {
             this.themeColor = res.background_color;
         })
-        this.$isIPad = this.$isIPad()
+        this.isIPad = this.$isIPad()
         this.urlParams = this.resolveUrlParams(weex.config.bundleUrl)
     },
     mounted() {
@@ -298,7 +298,7 @@ export default {
                     contentFaceObj['con'] = elementI.replace('_ _', '')
                 } else {
                     contentFaceObj['img'] = false
-                    contentFaceObj['con'] = elementI
+                    contentFaceObj['con'] = elementI.replace('\n', '')
                 }
                 contentFaceArr.push(contentFaceObj)
             }
@@ -525,7 +525,7 @@ export default {
 }
 
 .item-content {
-    width: 451px;
+    width: 436px;
     margin: 0 12wx 0 50wx;
 }
 
@@ -558,6 +558,7 @@ export default {
 
 .avatar-image {
     width: 32wx;
+    height: 32wx;
     border-radius: 16wx;
     background: #4ca4fe;
 }
@@ -571,7 +572,7 @@ export default {
 }
 
 .doc-list {
-    width: 451px;
+    width: 430px;
     background-color: #f2f2f2;
     padding: 4wx;
 }
