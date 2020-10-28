@@ -412,6 +412,11 @@ export default {
                         hotObj['isExisDoc'] = true
                         hotObj['docImage'] = '/image/url.png'
                         hotObj['docName'] = resourceItem.resourceDescription
+                        // 消息卡片
+                    } else if (resourceItem.resourceType == 8) {
+                        hotObj['isExisDoc'] = true
+                        hotObj['docImage'] = '/image/card.png'
+                        hotObj['docName'] = '卡片'
                     }
                 }
                 if (hotObj['imageArr'].length != 0) {
